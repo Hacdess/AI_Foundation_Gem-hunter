@@ -1,11 +1,12 @@
-from file import read_input_file
+from cnf_handle import CNF_solving_agent
+from grid import Grid
 
-class Grid:
-    def __init__(self, input_file):
-        self.grid = read_input_file(input_file)
-        self.width = len(self.grid[0])
-        self.height = len(self.grid)
-    
-    def is_valid_pos(self, x: int, y: int):
-        return x >= 0 and y >= 0 and x < self.width and y < self.height
+solving_agent = CNF_solving_agent()
 
+filename = input("Nhap ten file: ")
+grid = Grid(filename)
+print(grid.grid)
+cnf = solving_agent.generate_cnf(grid)
+print(cnf)
+solution = solving_agent.solve_cnf(cnf, grid)
+print(solution)

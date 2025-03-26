@@ -1,7 +1,7 @@
 # the standard way to import PySAT:
 from pysat.formula import CNF
 from pysat.solvers import Solver
-from grid import Grid
+from grid import Grid, is_valid_pos
 from itertools import combinations
 from copy import deepcopy
 
@@ -9,7 +9,7 @@ class CNF_solving_agent:
     def get_neighbors_positions(self, row, col, n_rows, n_cols):
         return[(row + i, col + j) for i in (-1, 0, 1) for j in (-1, 0, 1)
                # Check v alid pos
-                if (i != 0 or j != 0) and 0 <= row + i < n_rows and 0 <= col + j < n_cols]
+                if (i != 0 or j != 0) and is_valid_pos(row + i, col + j, n_rows, n_cols)]
     
     def generate_cnf(self, grid: Grid):
         rows, cols = grid.rows, grid.cols
@@ -38,6 +38,8 @@ class CNF_solving_agent:
                     for combination in combinations(neighbors, n_traps + 1):
                         cnf.append([-v for v in combination])
         
+        # Remove duplicated clauses
+        cnf.clauses = [list(clause) for clause in set(tuple(sorted(clause)) for clause in cnf.clauses)]
         return cnf
 
     def solve_cnf(self, cnf, grid: Grid):

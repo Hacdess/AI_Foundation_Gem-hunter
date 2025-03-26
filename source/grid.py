@@ -6,5 +6,5 @@ class Grid:
         self.cols = len(self.grid[0])
         self.rows = len(self.grid)
     
-    def is_valid_pos(self, x: int, y: int):
-        return x >= 0 and y >= 0 and x < self.cols and y < self.rows
+def is_valid_pos(row: int, col: int, rows: int, cols: int):
+    return (0 <= row < rows and 0 <= col < cols)

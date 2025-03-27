@@ -1,10 +1,55 @@
 from file import read_input_file
 
+def pos_to_Var(row: int, col: int, cols: int):
+    return row * cols + col + 1
+
+def var_to_pos(var: int, cols: int):
+    return [
+        (abs(var) - 1) % cols,
+        (abs(var) - 1) // cols
+    ]
+
 class Grid:
     def __init__(self, input_file):
         self.grid = read_input_file(input_file)
-        self.cols = len(self.grid[0])
         self.rows = len(self.grid)
+        self.cols = len(self.grid[0]) if self.rows > 0 else 0
+
+    def is_valid_pos(self, row: int, col: int):
+        return (0 <= row < self.rows and 0 <= col < self.cols)
+
+    def get_neighbors_positions(self, row: int, col: int):
+        if not self.is_valid_pos(row, col):
+            return []
+        
+        return[
+            (row + i, col + j) 
+            for i in (-1, 0, 1) 
+            for j in (-1, 0, 1)
+            # Check valid pos
+            if (i != 0 or j != 0) and self.is_valid_pos(row + i, col + j)
+        ]
     
-def is_valid_pos(row: int, col: int, rows: int, cols: int):
-    return (0 <= row < rows and 0 <= col < cols)
+    def count_surrounding_traps(self, row: int, col: int):
+        n_trap = 0
+        neighbors = self.get_neighbors_positions(row, col)
+        
+        for pos in neighbors:
+            if self.grid[pos[0]][pos[1]] == 'T':
+                n_trap += 1
+
+        return n_trap
+
+    def is_correct_pos(self, row: int, col: int):
+        if not self.is_valid_pos(row, col):
+            return False
+        
+        return self.count_surrounding_traps(row, col) == self.grid[row][col]
+    
+    def is_correct_solution(self):
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if isinstance(self.grid[i][j], int) and not self.is_correct_pos(i, j):
+                    return False
+                
+        return True

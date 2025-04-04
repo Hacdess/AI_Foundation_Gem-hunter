@@ -1,16 +1,34 @@
 # the standard way to import PySAT:
 from pysat.formula import CNF
 from pysat.solvers import Solver
-from grid import Grid
+from grid import Grid, pos_to_var, var_to_pos
 from itertools import combinations
 from copy import deepcopy
 
-class CNF_solving_agent:
+class CNF_handle:
+    def generate_clause(self, vars: list[int], n_traps: int):
+        clause = []
+
+        length = len(vars) - n_traps
+        if (length < 0):
+            return clause
+        
+        # At least n traps
+        for combination in combinations(vars, length + 1): 
+            clause.append([v for v in combination])
+
+        # No more than n trap
+        # If n_trap == len(vars), it should be included in the previous part
+        if (length > 0):
+            for combination in combinations(vars, n_traps + 1):
+                clause.append([-v for v in combination])
+
+        # Then we will get exactly n traps
+        return clause
+
     def generate_cnf(self, grid: Grid):
         rows, cols = grid.rows, grid.cols
         cnf = CNF()
-
-        var = lambda row, col : row * cols + col + 1
         
         for i in range(rows):
             for j in range (cols):
@@ -18,48 +36,31 @@ class CNF_solving_agent:
                     n_traps = grid.grid[i][j]
                     
                     # Get integer neighbor (legal)
-                    neighbors = [
-                        var(row, col)
+                    neighbors_var = [
+                        pos_to_var(row, col, cols)
                         for (row, col) in grid.get_neighbors_positions(i, j)
                         if not isinstance(grid.grid[row][col], int)
                     ]
 
-                    # Get traps
-                    length = len(neighbors) - n_traps
-                    for combination in combinations(neighbors, length + 1): 
-                        cnf.append([v for v in combination])
-                    
-                    # Get gems
-                    for combination in combinations(neighbors, n_traps + 1):
-                        cnf.append([-v for v in combination])
+                    cnf.extend(self.generate_clause(neighbors_var, n_traps))
         
         # Remove duplicated clauses
         cnf.clauses = [list(clause) for clause in set(tuple(sorted(clause)) for clause in cnf.clauses)]
         return cnf
 
-    def solve_cnf(self, cnf, grid: Grid):
-        solution = deepcopy(grid.grid)
+    def is_satisfiable_clause(self, clause: list[int], assignments: list[int]):
+        for literal in clause:
+            var = abs(literal)
+            value = assignments[var]
 
-        cols = grid.cols
-        solver = Solver()
-        solver.append_formula(cnf)
-        
-        if solver.solve():
-            model = solver.get_model()  # Lấy nghiệm
-            print(model)
-            # True = Trap, False = Gold
-            # var = (row × cols) + col + 1
-            for var in model:
-                col = (abs(var) - 1) % cols
-                row = (abs(var) - 1) // cols
-                
-                if not isinstance(solution[row][col], int):
-                    if var > 0:  # Chỉ quan tâm các biến dương
-                        solution[row][col] = 'T'  # Bẫy (Trap)
-                    else:
-                        solution[row][col] = 'G'  # Đá quý (Gem)
-
-            return solution
-        else:
-            print("No solution")
-            return None
+            # 1 literal is satisfiable, then the whole clause is satisfiable
+            if (literal > 0 and value) or (literal < 0 and not value):
+                return True
+            
+        return False
+    
+    def is_satisfiable(self, cnf: list[list[int]], assignments: list[int]):
+        for clause in cnf:
+            if not self.is_satisfiable_clause(cnf, assignments):
+                return False
+        return True

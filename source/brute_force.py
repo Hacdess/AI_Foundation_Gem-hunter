@@ -1,20 +1,11 @@
 from grid import Grid
 from copy import deepcopy
+from cnf_handle import CNF_handle
 
-class BruteForce:
-    def get_empty_pos(self, grid: Grid):
-        rows, cols = grid.rows, grid.cols
-
-        return [
-            (row, col)
-            for row in range(rows)
-            for col in range(cols)
-            if grid.grid[row][col] == '_'
-        ]
-
+class brute_force_agent:
     def solve(self, grid: Grid):
         solution = deepcopy(grid)
-        empty_pos = self.get_empty_pos(solution)
+        empty_pos = solution.get_empty_pos()
 
         n_empty = len(empty_pos)
         
@@ -27,7 +18,7 @@ class BruteForce:
             for idx, (row, col) in enumerate(empty_pos):
                 solution.grid[row][col] = 'T' if binary_representation[idx] else 'G'
 
-            if solution.is_correct_solution():
+            if solution.is_solved():
                 return solution.grid
 
         return None

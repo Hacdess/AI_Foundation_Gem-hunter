@@ -1,6 +1,6 @@
 from file import read_input_file
 
-def pos_to_Var(row: int, col: int, cols: int):
+def pos_to_var(row: int, col: int, cols: int):
     return row * cols + col + 1
 
 def var_to_pos(var: int, cols: int):
@@ -20,7 +20,7 @@ class Grid:
 
     def get_neighbors_positions(self, row: int, col: int):
         if not self.is_valid_pos(row, col):
-            return []
+            return None
         
         return[
             (row + i, col + j) 
@@ -39,6 +39,14 @@ class Grid:
                 n_trap += 1
 
         return n_trap
+    
+    def get_empty_pos(self):
+        return [
+            (row, col)
+            for row in range(self.rows)
+            for col in range(self.cols)
+            if self.grid[row][col] == '_'
+        ]
 
     def is_correct_pos(self, row: int, col: int):
         if not self.is_valid_pos(row, col):
@@ -46,7 +54,7 @@ class Grid:
         
         return self.count_surrounding_traps(row, col) == self.grid[row][col]
     
-    def is_correct_solution(self):
+    def is_solved(self):
         for i in range(self.rows):
             for j in range(self.cols):
                 if isinstance(self.grid[i][j], int) and not self.is_correct_pos(i, j):

@@ -1,8 +1,11 @@
 from file import read_input_file
 
 class Grid:
-    def __init__(self, input_file):
-        self.grid = read_input_file(input_file)
+    def __init__(self, source):
+        if isinstance(source, str):
+            self.grid = read_input_file(source)
+        else:
+            self.grid = source
         self.rows = len(self.grid)
         self.cols = len(self.grid[0]) if self.rows > 0 else 0
 

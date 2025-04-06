@@ -4,15 +4,44 @@ from cnf_handle import cnf_handle
 from pysat.solvers import Solver
 from pysat.formula import CNF
 from typing import Optional
+from file import write_output_file
+import time
 
 class solving_agent:
     def __init__(self, grid: Grid):
         self.grid = deepcopy(grid)
         self.cnf_agent = cnf_handle()
         self.cnf = self.cnf_agent.generate_cnf(self.grid)
+        self.solution = []
+        self.time = 0
 
     def solve(self) -> Optional[list[int]]:
-        raise NotImplementedError("Subclasses must implement this method")
+        pass
+
+    def get_solution(self):
+        start = time.time()
+        model = self.solve()
+
+        if not model:
+            return None
+
+        self.time = time.time() - start
+
+        solution = deepcopy(self.grid.grid)
+
+        for var in model:
+            pos = self.cnf_agent.var_to_pos(var)
+            
+            if var > 0:  # Chỉ quan tâm các biến dương
+                solution[pos[0]][pos[1]] = 'T'  # Bẫy (Trap)
+            else:
+                solution[pos[0]][pos[1]] = 'G'  # Đá quý (Gem)
+
+        self.solution = solution
+        return solution
+        
+    def output_solution(self, filename: str):
+        pass
 
 class brute_force_solving_agent(solving_agent):
     def __init__(self, grid: Grid):
@@ -35,6 +64,14 @@ class brute_force_solving_agent(solving_agent):
 
         print("Brute Force: No solution")
         return None
+    
+    def output_solution(self, filename: str):
+        solution = self.get_solution()
+        if not solution:
+            print("No solution")
+            return
+        print("Brute Force: ", f"{self.time * 1000:.9f} ms" , "\n", solution, '\n')
+        write_output_file(solution, filename, "Brute force", True)
         
 class backtracking_solving_agent(solving_agent):
     def __init__(self, grid: Grid):
@@ -87,11 +124,19 @@ class backtracking_solving_agent(solving_agent):
 
             result = self.dpll(new_cnf, new_assignments)
             if result is not None:
-                sat, final_assignments = result
-                if sat:
+                satisfiable, final_assignments = result
+                if satisfiable:
                     return True, final_assignments
 
         return False, {}
+    
+    def output_solution(self, filename: str):
+        solution = self.get_solution()
+        if not solution:
+            print("Backtracking: No solution")
+            return
+        print("Backtracking:", f"{self.time * 1000:.9f} ms", "\n", solution, '\n')
+        write_output_file(solution, filename, "Backtracking", False)
     
 class pysat_solving_agent(solving_agent):
     def __init__(self, grid: Grid):
@@ -103,18 +148,15 @@ class pysat_solving_agent(solving_agent):
         
         if solver.solve():
             return solver.get_model()  # Lấy nghiệm
-            # print(model)
 
-            # for var in model:
-            #     pos = self.cnf_agent.var_to_pos(var)
-                
-            #     if not isinstance(solution[pos[0]][pos[1]], int):
-            #         if var > 0:  # Chỉ quan tâm các biến dương
-            #             solution[pos[0]][pos[1]] = 'T'  # Bẫy (Trap)
-            #         else:
-            #             solution[pos[0]][pos[1]] = 'G'  # Đá quý (Gem)
-
-            # return solution
         else:
             print("Pysat: No solution")
             return None
+
+    def output_solution(self, filename: str):
+        solution = self.get_solution()
+        if not solution:
+            print("No solution")
+            return
+        print("Pysat:", f"{self.time * 1000:.9f} ms", "\n", solution, '\n')
+        write_output_file(solution, filename, "Pysat", False)

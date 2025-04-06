@@ -8,6 +8,7 @@ class cnf_handle:
     def __init__(self):
         self.vars_dict = {}  # {(row, col): var_id}
         self.var_counter = 1  # var ID
+        self.cnf: list[list[int]]
 
     def add_var(self, pos: tuple[int, int]):
         if pos not in self.vars_dict:
@@ -72,6 +73,8 @@ class cnf_handle:
         
         # Remove duplicated clauses
         cnf.clauses = [list(clause) for clause in set(tuple(sorted(clause)) for clause in cnf.clauses)]
+        
+        self.cnf = cnf
         return cnf
 
     def get_variables(self, cnf: CNF):

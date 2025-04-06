@@ -1,0 +1,21 @@
+Brute force:
+2, 2, G, 1, 1
+T, T, 5, T, G
+4, T, T, T, T
+G, T, T, T, 4
+2, T, 5, T, 2
+
+Backtracking:
+2, 2, G, 1, 1
+T, T, 5, T, G
+4, T, T, T, T
+G, T, T, T, 4
+2, T, 5, T, 2
+
+Pysat:
+2, 2, G, 1, 1
+T, T, 5, T, G
+4, T, T, T, T
+G, T, T, T, 4
+2, T, 5, T, 2
+

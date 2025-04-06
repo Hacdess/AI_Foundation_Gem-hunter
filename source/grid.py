@@ -33,14 +33,6 @@ class Grid:
                 n_trap += 1
 
         return n_trap
-    
-    def get_empty_pos(self):
-        return [
-            (row, col)
-            for row in range(self.rows)
-            for col in range(self.cols)
-            if self.grid[row][col] == '_'
-        ]
 
     def is_correct_pos(self, row: int, col: int):
         if not self.is_valid_pos(row, col):

@@ -8,10 +8,10 @@ from file import write_output_file
 import time
 
 class solving_agent:
-    def __init__(self, grid: Grid):
+    def __init__(self, grid: Grid, cnf_agent: cnf_handle):
         self.grid = deepcopy(grid)
-        self.cnf_agent = cnf_handle()
-        self.cnf = self.cnf_agent.generate_cnf(self.grid)
+        self.cnf_agent = cnf_agent
+        self.cnf = cnf_agent.cnf
         self.solution = []
         self.time = 0
 
@@ -21,11 +21,10 @@ class solving_agent:
     def get_solution(self):
         start = time.time()
         model = self.solve()
+        self.time = time.time() - start
 
         if not model:
             return None
-
-        self.time = time.time() - start
 
         solution = deepcopy(self.grid.grid)
 
@@ -36,6 +35,13 @@ class solving_agent:
                 solution[pos[0]][pos[1]] = 'T'  # Bẫy (Trap)
             else:
                 solution[pos[0]][pos[1]] = 'G'  # Đá quý (Gem)
+                
+        rows, cols = len(solution), len(solution[0])
+        
+        for i in range(rows):
+            for j in range(cols):
+                if solution[i][j] == '_':
+                    solution[i][j] = 'G'
 
         self.solution = solution
         return solution
@@ -44,8 +50,9 @@ class solving_agent:
         pass
 
 class brute_force_solving_agent(solving_agent):
-    def __init__(self, grid: Grid):
-        super().__init__(grid)
+    def __init__(self, grid: Grid, cnf_agent: cnf_handle):
+        super().__init__(grid, cnf_agent)
+        self.n_attempts = 2000000
 
     def solve(self) -> Optional[list[int]]:
         length = self.cnf_agent.var_counter - 1
@@ -56,11 +63,19 @@ class brute_force_solving_agent(solving_agent):
         assignments = [False] * length
 
         for bits in range(total):
+            if self.n_attempts < 1:
+                print("Brute force reached limit attemptss.")
+                return None
+            
+            self.n_attempts -= 1
+            
             for i in range(length):
                 assignments[i] = bool((bits >> i) & 1)
 
             if self.cnf_agent.is_satisfiable(self.cnf, assignments):
-                return [var if assignments[var - 1] else -var for var in range(1, length + 1)]
+                model = [var if assignments[var - 1] else -var for var in range(1, length + 1)]
+                print("Brute force's model: ", model)
+                return model
 
         print("Brute Force: No solution")
         return None
@@ -68,25 +83,25 @@ class brute_force_solving_agent(solving_agent):
     def output_solution(self, filename: str):
         solution = self.get_solution()
         if not solution:
-            print("No solution")
-            return
-        print("Brute Force: ", f"{self.time * 1000:.9f} ms" , "\n", solution, '\n')
+            print("Brute Force: No solution")
         write_output_file(solution, filename, "Brute force", True)
         
 class backtracking_solving_agent(solving_agent):
-    def __init__(self, grid: Grid):
-        super().__init__(grid)
+    def __init__(self, grid: Grid, cnf_agent: cnf_handle):
+        super().__init__(grid, cnf_agent)
+        self.n_attempts = 2000000
 
     def solve(self) -> Optional[list[int]]:
-        result = self.dpll(self.cnf.clauses)
+        result = self.dpll(self.cnf_agent.cnf)
 
+        if self.n_attempts < 1:
+            print("Backtracking reached limit attemptss.")
+                
         if result is None:
-            print("No solution")
             return None
 
         sat, assignments = result
         if not sat:
-            print("No solution")
             return None
         
         model = []
@@ -94,9 +109,14 @@ class backtracking_solving_agent(solving_agent):
             value = assignments.get(var, False)
             model.append(var if value else -var)
 
+        print("Backtracking's model: ", model)
         return model
 
     def dpll(self, cnf: list[list[int]], assignments: dict[int, bool] = {}) -> Optional[tuple[bool, dict[int, bool]]]:
+        if self.n_attempts < 1:
+            return None
+        self.n_attempts -= 1
+        
         if not cnf:
             return True, assignments
 
@@ -105,6 +125,7 @@ class backtracking_solving_agent(solving_agent):
 
         # Find unassigned variables
         unassigned_lits = list(abs(lit) for clause in cnf for lit in clause if abs(lit) not in assignments)
+        
         if not unassigned_lits:
             return False, {}  # Because there is no variable left to assign but cnf is still not satisfiable
 
@@ -134,20 +155,20 @@ class backtracking_solving_agent(solving_agent):
         solution = self.get_solution()
         if not solution:
             print("Backtracking: No solution")
-            return
-        print("Backtracking:", f"{self.time * 1000:.9f} ms", "\n", solution, '\n')
         write_output_file(solution, filename, "Backtracking", False)
     
 class pysat_solving_agent(solving_agent):
-    def __init__(self, grid: Grid):
-        super().__init__(grid)
+    def __init__(self, grid: Grid, cnf_agent: cnf_handle):
+        super().__init__(grid, cnf_agent)
 
     def solve(self) -> Optional[list[int]]:
         solver = Solver()
         solver.append_formula(self.cnf)
         
         if solver.solve():
-            return solver.get_model()  # Lấy nghiệm
+            model = solver.get_model()  # Lấy nghiệm
+            print("Pysat's model: ", model)
+            return model
 
         else:
             print("Pysat: No solution")
@@ -156,7 +177,5 @@ class pysat_solving_agent(solving_agent):
     def output_solution(self, filename: str):
         solution = self.get_solution()
         if not solution:
-            print("No solution")
-            return
-        print("Pysat:", f"{self.time * 1000:.9f} ms", "\n", solution, '\n')
+            print("Pysat: No solution")
         write_output_file(solution, filename, "Pysat", False)

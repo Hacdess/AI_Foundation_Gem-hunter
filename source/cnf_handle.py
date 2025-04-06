@@ -1,11 +1,36 @@
 # the standard way to import PySAT:
 from pysat.formula import CNF
 from pysat.solvers import Solver
-from grid import Grid, pos_to_var, var_to_pos
 from itertools import combinations
-from copy import deepcopy
+from grid import Grid
 
-class CNF_handle:
+class cnf_handle:
+    def __init__(self):
+        self.vars_dict = {}  # {(row, col): var_id}
+        self.var_counter = 1  # var ID
+
+    def add_var(self, pos: tuple[int, int]):
+        if pos not in self.vars_dict:
+            self.vars_dict[pos] = self.var_counter
+            self.var_counter += 1
+
+    def pos_to_var(self, pos: tuple[int, int]):
+        return self.vars_dict.get(pos)  # Return None if there is no key
+    
+    def var_to_pos(self, var: int):
+        for pos, value in self.vars_dict.items():
+            if abs(var) == value:
+                return pos
+        return None
+    
+    def convert_empty_pos_to_vars(self, grid: Grid):
+        rows, cols = grid.rows, grid.cols
+
+        for row in range(rows):
+            for col in range(cols):
+                if grid.grid[row][col] == '_':
+                    self.add_var((row, col))
+
     def generate_clause(self, vars: list[int], n_traps: int):
         clause = []
 
@@ -28,6 +53,7 @@ class CNF_handle:
 
     def generate_cnf(self, grid: Grid):
         rows, cols = grid.rows, grid.cols
+        self.convert_empty_pos_to_vars(grid)
         cnf = CNF()
         
         for i in range(rows):
@@ -36,22 +62,29 @@ class CNF_handle:
                     n_traps = grid.grid[i][j]
                     
                     # Get integer neighbor (legal)
-                    neighbors_var = [
-                        pos_to_var(row, col, cols)
+                    neighbors_vars = [
+                        self.pos_to_var((row, col))
                         for (row, col) in grid.get_neighbors_positions(i, j)
                         if not isinstance(grid.grid[row][col], int)
                     ]
 
-                    cnf.extend(self.generate_clause(neighbors_var, n_traps))
+                    cnf.extend(self.generate_clause(neighbors_vars, n_traps))
         
         # Remove duplicated clauses
         cnf.clauses = [list(clause) for clause in set(tuple(sorted(clause)) for clause in cnf.clauses)]
         return cnf
 
-    def is_satisfiable_clause(self, clause: list[int], assignments: list[int]):
+    def get_variables(self, cnf: CNF):
+        variables = set()  # Set to avoid duplicates
+        for clause in cnf.clauses:
+            for literal in clause:
+                variables.add(abs(literal))  # Only add the absolute value of the literal (i.e., the variable itself)
+        return list(variables)
+    
+    def is_satisfiable_clause(self, clause: list[int], assignments: list[bool]):
         for literal in clause:
             var = abs(literal)
-            value = assignments[var]
+            value = assignments[var - 1] # vars start from 1
 
             # 1 literal is satisfiable, then the whole clause is satisfiable
             if (literal > 0 and value) or (literal < 0 and not value):
@@ -59,8 +92,8 @@ class CNF_handle:
             
         return False
     
-    def is_satisfiable(self, cnf: list[list[int]], assignments: list[int]):
-        for clause in cnf:
-            if not self.is_satisfiable_clause(cnf, assignments):
+    def is_satisfiable(self, cnf: CNF, assignments: list[bool]):
+        for clause in cnf.clauses:
+            if not self.is_satisfiable_clause(clause, assignments):
                 return False
         return True

@@ -1,30 +1,22 @@
-from cnf_handle import CNF_solving_agent
 from grid import Grid
-from file import write_output_file
 import time
-from brute_force import BruteForce
-from backtracking import BackTracking
-
-solving_agent = CNF_solving_agent()
+from solving_agent import brute_force_solving_agent, backtracking_solving_agent, pysat_solving_agent
 
 filename = input("Nhap ten file: ")
 grid = Grid(filename)
 print(grid.grid)
-bruteforce_agent = BruteForce()
-backtracking_agent = BackTracking()
 
-start = time.time()
+brute_force_agent = brute_force_solving_agent(grid)
+backtracking_agent = backtracking_solving_agent(grid)
+pysat_agent = pysat_solving_agent(grid)
 
-cnf = solving_agent.generate_cnf(grid)
-print(cnf.clauses)
-solution = solving_agent.solve_cnf(cnf, grid)
-# solution = bruteforce_agent.solve(grid)
-# solution = backtracking_agent.solve(grid)
+brute_force_res = brute_force_agent.solve()
+backtracking_res = backtracking_agent.solve()
+pysat_res = pysat_agent.solve()
 
-end = time.time()
-elapsed_time_ms = (end - start) * 1000
-print(f"Thời gian thực thi: {elapsed_time_ms:.10f} ms")
-
-print(solution)
-filename = input("Nhap ten file: ")
-write_output_file(solution, filename)
+if brute_force_res:
+    print("Brute Force:", brute_force_res)
+if backtracking_res:
+    print("Backtracking: ", backtracking_res)
+if pysat_res:
+    print("Pysat: ", pysat_res)

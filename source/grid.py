@@ -1,14 +1,5 @@
 from file import read_input_file
 
-def pos_to_var(row: int, col: int, cols: int):
-    return row * cols + col + 1
-
-def var_to_pos(var: int, cols: int):
-    return [
-        (abs(var) - 1) % cols,
-        (abs(var) - 1) // cols
-    ]
-
 class Grid:
     def __init__(self, input_file):
         self.grid = read_input_file(input_file)

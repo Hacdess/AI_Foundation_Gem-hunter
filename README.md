@@ -1,7 +1,7 @@
 # Gem Hunter Game
 
 ## Description
-The Gem Hunter game is a puzzle where players explore a grid to find hidden gems while avoiding traps. Each tile with a number represents the number of traps surrounding it. (Number from 1 - 8). Each tile without a number represents the unknown position. Those positions must be Trap (T) or Gem(G). This program's task is to formulate the problem as Conjunctive Normal Form (CNF) constraints and solve it using logic.
+The Gem Hunter game is a puzzle where players explore a grid to find hidden gems while avoiding traps. Each tile with a number represents the number of traps surrounding it. (Number from 1 - 8). Each tile without a number represents the unknown position. Those positions must be Trap (T) or Gem (G). This program's task is to formulate the problem as Conjunctive Normal Form (CNF) constraints and solve it using logic.
 
 ## Table of Contents
 - [Installation](#installation)

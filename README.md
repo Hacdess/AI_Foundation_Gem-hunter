@@ -1,7 +1,7 @@
 # Gem Hunter Game
 
 ## Description
-The Gem Hunter game is a puzzle where players explore a grid to find hidden gems while avoiding traps. Each tile with a number represents the number of traps surrounding it. The game is formulated as a Conjunctive Normal Form (CNF) problem and solved using various algorithms.
+The Gem Hunter game is a puzzle where players explore a grid to find hidden gems while avoiding traps. Each tile with a number represents the number of traps surrounding it. (Number from 1 - 8). Each tile without a number represents the unknown position. Those positions must be Trap (T) or Gem(G). This program's task is to formulate the problem as Conjunctive Normal Form (CNF) constraints and solve it using logic.
 
 ## Table of Contents
 - [Installation](#installation)
@@ -24,11 +24,11 @@ pip install pysat
 ### Running
 - Prepare your input files in the input directory. The input files should be named input_x.txt where x is the number of the input.
 - Run the main program:
-- **Method 1:** Navigate to the AI_Foundation_Gem-hunter directory then use the command:
-```bash
-python source/main.py
-```
-- **Method 2:** Visit file main.py and use the Run botton.
+    - Method 1: Navigate to the AI_Foundation_Gem-hunter directory then use the command:
+    ```bash
+    python source/main.py
+    ```
+    - Method 2: Visit file main.py and use the Run botton.
 - The output will be saved in the output directory as output_x.txt corresponding to each input file.
 
 ## File Structure

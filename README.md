@@ -24,11 +24,12 @@ pip install pysat
 ### Running
 - Prepare your input files in the input directory. The input files should be named input_x.txt where x is the number of the input.
 - Run the main program:
-+ Method 1: Navigate to the AI_Foundation_Gem-hunter directory then use the command:
+    - Method 1: Navigate to the AI_Foundation_Gem-hunter directory then use the command:
 ```bash
 python source/main.py
 ```
-+ Method 2: Visit file main.py and use the Run botton.
+
+    - Method 2: Visit file main.py and use the Run botton.
 - The output will be saved in the output directory as output_x.txt corresponding to each input file.
 
 ## File Structure
